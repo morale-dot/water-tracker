@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水分摂取記録</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #cffafe 100%);
+            min-height: 100vh;
+            padding: 8px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .total-display {
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .total-amount {
+            font-size: 56px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .total-unit {
+            font-size: 32px;
+            margin-left: 8px;
+        }
+
+        .total-label {
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        input {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 18px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .calendar-view {
+            display: none;
+        }
+
+        .calendar-view.active {
+            display: block;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            width: 100%;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            padding: 8px 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 4px;
+            font-size: 12px;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .calendar-day.today {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .calendar-day-number {
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .calendar-day-amount {
+            margin-top: 2px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .back-btn {
+            color: #3b82f6;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 入力画面 -->
+        <div id="inputView">
+            <div class="card">
+                <div class="icon">💧</div>
+                <h1>水分摂取記録</h1>
+                
+                <div class="total-display">
+                    <div>
+                        <span class="total-amount" id="todayTotal">0.0</span>
+                        <span class="total-unit">L</span>
+                    </div>
+                    <div class="total-label">今日の合計</div>
+                </div>
+
+                <div class="input-group">
+                    <input type="number" id="amountInput" placeholder="ml" min="0">
+                    <button class="btn btn-primary" onclick="addWater()">追加</button>
+                </div>
+
+                <div class="preset-buttons">
+                    <button class="btn btn-secondary" onclick="addPreset(100)">100ml</button>
+                    <button class="btn btn-secondary" onclick="addPreset(200)">200ml</button>
+                    <button class="btn btn-secondary" onclick="addPreset(500)">500ml</button>
+                </div>
+
+                <button class="btn btn-secondary" style="width: 100%;" onclick="showCalendar()">📅 カレンダー表示</button>
+            </div>
+        </div>
+
+        <!-- カレンダー画面 -->
+        <div id="calendarView" class="calendar-view">
+            <div class="card">
+                <button class="btn btn-secondary back-btn" onclick="showInput()">💧 記録に戻る</button>
+                
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button onclick="changeMonth(-1)">←</button>
+                        <div class="calendar-title" id="calendarTitle"></div>
+                        <button onclick="changeMonth(1)">→</button>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">日</div>
+                    <div class="calendar-day-header">月</div>
+                    <div class="calendar-day-header">火</div>
+                    <div class="calendar-day-header">水</div>
+                    <div class="calendar-day-header">木</div>
+                    <div class="calendar-day-header">金</div>
+                    <div class="calendar-day-header">土</div>
+                </div>
+                <div class="calendar-grid" id="calendarDays">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMonth = new Date();
+        const today = new Date().toISOString().split('T')[0];
+
+        // ページ読み込み時に今日のデータを表示
+        window.onload = function() {
+            loadTodayData();
+            
+            // Enterキーで追加
+            document.getElementById('amountInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addWater();
+                }
+            });
+        };
+
+        function getTodayKey() {
+            return 'water:' + today;
+        }
+
+        function loadTodayData() {
+            const data = localStorage.getItem(getTodayKey());
+            const total = data ? parseInt(data) : 0;
+            document.getElementById('todayTotal').textContent = (total / 1000).toFixed(1);
+        }
+
+        function addWater() {
+            const input = document.getElementById('amountInput');
+            const amount = parseInt(input.value);
+            
+            if (!amount || amount <= 0) return;
+
+            const currentTotal = parseInt(localStorage.getItem(getTodayKey()) || '0');
+            const newTotal = currentTotal + amount;
+            
+            localStorage.setItem(getTodayKey(), newTotal);
+            document.getElementById('todayTotal').textContent = (newTotal / 1000).toFixed(1);
+            input.value = '';
+        }
+
+        function addPreset(amount) {
+            const currentTotal = parseInt(localStorage.getItem(getTodayKey()) || '0');
+            const newTotal = currentTotal + amount;
+            
+            localStorage.setItem(getTodayKey(), newTotal);
+            document.getElementById('todayTotal').textContent = (newTotal / 1000).toFixed(1);
+        }
+
+        function showCalendar() {
+            document.getElementById('inputView').style.display = 'none';
+            document.getElementById('calendarView').classList.add('active');
+            renderCalendar();
+        }
+
+        function showInput() {
+            document.getElementById('calendarView').classList.remove('active');
+            document.getElementById('inputView').style.display = 'block';
+            loadTodayData();
+        }
+
+        function changeMonth(delta) {
+            currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            
+            document.getElementById('calendarTitle').textContent = `${year}年${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            let html = '';
+            
+            // 空白セル - 明示的にcalendar-dayクラスを付ける
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += '<div class="calendar-day" style="visibility: hidden;"></div>';
+            }
+
+            // 日付セル
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const amount = parseInt(localStorage.getItem('water:' + dateStr) || '0');
+                const isToday = dateStr === today;
+                
+                html += `<div class="calendar-day ${isToday ? 'today' : ''}">
+                    <div class="calendar-day-number">${day}</div>
+                    ${amount > 0 ? `<div class="calendar-day-amount">${(amount / 1000).toFixed(1)}L</div>` : ''}
+                </div>`;
+            }
+
+            document.getElementById('calendarDays').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
