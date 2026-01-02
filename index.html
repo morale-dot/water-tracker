@@ -1,3 +1,6 @@
+Water tracker · HTML
+コピー
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -204,6 +207,17 @@
             font-weight: 600;
             margin-bottom: 16px;
         }
+
+        .export-btn {
+            width: 100%;
+            margin-top: 16px;
+            background: #10b981;
+            color: white;
+        }
+
+        .export-btn:hover {
+            background: #059669;
+        }
     </style>
 </head>
 <body>
@@ -234,6 +248,8 @@
                 </div>
 
                 <button class="btn btn-secondary" style="width: 100%;" onclick="showCalendar()">📅 カレンダー表示</button>
+
+                <button class="btn btn-secondary export-btn" onclick="exportCSV()">💾 CSVダウンロード</button>
             </div>
         </div>
 
@@ -261,6 +277,8 @@
                 </div>
                 <div class="calendar-grid" id="calendarDays">
                 </div>
+
+                <button class="btn btn-secondary export-btn" onclick="exportCSV()">💾 CSVダウンロード</button>
             </div>
         </div>
     </div>
@@ -361,6 +379,42 @@
             }
 
             document.getElementById('calendarDays').innerHTML = html;
+        }
+
+        function exportCSV() {
+            // Get all water data from localStorage
+            const data = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('water:')) {
+                    const date = key.replace('water:', '');
+                    const ml = localStorage.getItem(key);
+                    data.push({ date, ml });
+                }
+            }
+
+            // Sort by date
+            data.sort((a, b) => a.date.localeCompare(b.date));
+
+            // Create CSV content
+            let csv = '日付,摂取量(ml),摂取量(L)\n';
+            data.forEach(item => {
+                const liters = (parseInt(item.ml) / 1000).toFixed(1);
+                csv += `${item.date},${item.ml},${liters}\n`;
+            });
+
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const filename = `水分摂取記録_${new Date().toISOString().split('T')[0]}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
