@@ -303,6 +303,7 @@
             <div class="card">
                 <div class="icon">💧</div>
                 <h1>水分摂取記録</h1>
+                <div style="text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 8px;" id="currentDate"></div>
                 
                 <div class="total-display">
                     <div>
@@ -397,15 +398,16 @@
                 }
             });
 
-            // 10秒ごとに日付変更をチェック
-            setInterval(checkDateChange, 10000);
+            // 5秒ごとに日付変更をチェック
+            setInterval(checkDateChange, 5000);
         };
 
-        let lastLoadedDate = new Date().toISOString().split('T')[0];
+        let lastLoadedDate = getToday();
 
         function checkDateChange() {
             const currentDate = getToday();
             if (currentDate !== lastLoadedDate) {
+                console.log('日付が変わりました:', lastLoadedDate, '→', currentDate);
                 lastLoadedDate = currentDate;
                 loadTodayData();
             }
@@ -425,6 +427,17 @@
 
         function loadTodayData() {
             const today = getToday();
+            lastLoadedDate = today;  // 日付を更新
+            
+            // 日付を表示
+            const dateObj = new Date(today);
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth() + 1;
+            const day = dateObj.getDate();
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            const weekday = weekdays[dateObj.getDay()];
+            document.getElementById('currentDate').textContent = `${year}年${month}月${day}日(${weekday})`;
+            
             const data = localStorage.getItem(getTodayKey());
             const total = data ? parseInt(data) : 0;
             document.getElementById('todayTotal').textContent = (total / 1000).toFixed(1);
@@ -435,12 +448,18 @@
         }
 
         function toggleAlcohol() {
+            // 飲酒フラグを変更する前に日付チェック
+            checkDateChange();
+            
             const today = getToday();
             const checked = document.getElementById('alcoholCheck').checked;
             localStorage.setItem(getAlcoholKey(today), checked);
         }
 
         function addWater() {
+            // 水を追加する前に日付変更をチェック
+            checkDateChange();
+            
             const input = document.getElementById('amountInput');
             const amount = parseInt(input.value);
             
@@ -455,6 +474,9 @@
         }
 
         function addPreset(amount) {
+            // 水を追加する前に日付変更をチェック
+            checkDateChange();
+            
             const currentTotal = parseInt(localStorage.getItem(getTodayKey()) || '0');
             const newTotal = currentTotal + amount;
             
@@ -471,7 +493,7 @@
         function showInput() {
             document.getElementById('calendarView').classList.remove('active');
             document.getElementById('inputView').style.display = 'block';
-            loadTodayData();
+            checkDateChange();  // 記録画面に戻るときに日付チェック
         }
 
         function changeMonth(delta) {
